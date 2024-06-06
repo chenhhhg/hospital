@@ -162,4 +162,22 @@ public class RegistrationController {
         ops.getAndDelete(lock);
         return Response.ok(null);
     }
+
+    @Operation(summary = "病人支付", description = "只有病人有权访问")
+    @GetMapping("/pay/{id}")
+    @Authorized(permits = RoleEnum.PATIENT)
+    public Response<Registration> pay(HttpServletRequest request, @PathVariable("id") Integer id){
+        HttpSession session = request.getSession();
+        Integer patientId = (Integer) session.getAttribute(SessionAttributeEnum.USER_ID.name());
+        List<RegistrationRelation> selfRegistration = registrationRelationService.getSelfRegistration(patientId);
+        RegistrationRelation relation = selfRegistration.stream()
+                .filter(r -> r.getRegistrationSource().equals(id)).collect(Collectors.toList()).get(0);
+        if (relation.getPayStatus().equals(0)){
+            relation.setPayStatus(1);
+            registrationRelationService.updateById(relation);
+            return Response.ok(null);
+        }else {
+            return Response.fail(null, ResultEnum.REPEATE_PAY.getCode(), "请勿重复支付！");
+        }
+    }
 }
