@@ -1,3 +1,11 @@
-1. BUPT Java大作业 医院管理系统
-2. Springboot、SpringSession、SpringAop、自定义注解
-3. MySQL、MyBatis-Plus、Redis
+1. 本项目是2024年BUPT大二下的Java大作业，医院管理系统。
+2. 分医生、病人、管理员三种角色。实现登录、注册、审核、挂号，以及一些CRUD。
+3. 基于Springboot，使用SpringSession实现分布式会话，用SpringAop+自定义注解实现鉴权与自动更新日志。
+4. 数据库用MySQL，ORM是MyBatis-Plus。session、缓存和分布式锁用Redis。
+5. 使用指南
+   1. 安装MySQL、Redis并启动，使用默认端口或自行更改application.yml。
+   2. 在MySQL中创建数据库hospital_management。
+   3. 修改application.yml里的MySQL连接信息，主要是账户与密码。
+   4. 运行create_table.sql，该脚本会创建项目用的表，并注入一些数据。
+   5. 启动项目。
+   6. 打开http://localhost:8000/swagger-ui/index.html，在explore栏中输入http://localhost:8000/v3/api-docs可看到所有接口信息。
