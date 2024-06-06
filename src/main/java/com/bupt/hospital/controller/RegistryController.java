@@ -41,7 +41,12 @@ public class RegistryController {
             patient.setContact("");
             patient.setName("");
             patient.setIdNumber(UUID.randomUUID().toString().substring(0,18));
-            return registryService.registryPatient(patient);
+            Patient data = registryService.registryPatient(patient).getData();
+            if (data == null){
+                return Response.fail(null, ResultEnum.USER_NAME_EXIST.getCode(), "用户名已存在");
+            }
+            registryUser.setUid(data.getUserId());
+            return Response.ok(registryUser);
         }else if(registryUser.getUserRole().equalsIgnoreCase(RoleEnum.DOCTOR.name())){
             Doctor doctor = new Doctor();
             doctor.setUserName(registryUser.getUserName());
@@ -56,8 +61,12 @@ public class RegistryController {
             doctor.setHospital("");
             doctor.setSpecialty("");
             doctor.setAddress("");
-            doctor.setTitle("");
-            return registryService.registryDoctor(doctor);
+            Doctor data = registryService.registryDoctor(doctor).getData();
+            doctor.setTitle("");if (data == null){
+                return Response.fail(null, ResultEnum.USER_NAME_EXIST.getCode(), "用户名已存在");
+            }
+            registryUser.setUid(data.getUserId());
+            return Response.ok(registryUser);
         }else {
             return Response.fail(null, ResultEnum.ROLE_ERROR.getCode(), "角色信息错误！");
         }
@@ -65,7 +74,7 @@ public class RegistryController {
 
     @Operation(summary = "使用url去选择性注册病人")
     @PostMapping("/patient")
-    public Response<RegistryVo> registryPatient(@RequestBody @Validated Patient patient){
+    public Response<Patient> registryPatient(@RequestBody @Validated Patient patient){
         //id is set in db
         patient.setUserId(null);
         return registryService.registryPatient(patient);
@@ -73,7 +82,7 @@ public class RegistryController {
 
     @Operation(summary = "使用url去选择性注册医生")
     @PostMapping("/doctor")
-    public Response<RegistryVo> registryDoctor(@RequestBody @Validated Doctor doctor){
+    public Response<Doctor> registryDoctor(@RequestBody @Validated Doctor doctor){
         doctor.setUserId(null);
         return registryService.registryDoctor(doctor);
     }

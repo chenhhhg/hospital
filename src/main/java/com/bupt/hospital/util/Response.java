@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 /**
  * @author cgx
  */
@@ -13,7 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Response<T> {
+public class Response<T> implements Serializable {
     private T data;
     private Integer code;
     private String message;

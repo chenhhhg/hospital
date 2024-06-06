@@ -42,7 +42,7 @@ public class RegistrationController {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-    private final String REGISTRATION_LOCK_PREFIX = "registration:lock:";
+    private final String REGISTRATION_LOCK_PREFIX = "hospital:registration:lock:";
 
     @Operation(summary = "医生新增号源信息", description = "只有通过审核的医生本人有权访问")
     @PostMapping("/addRegistration")
@@ -159,7 +159,7 @@ public class RegistrationController {
         registrationRelation.setPayStatus(0);
         registrationRelationService.save(registrationRelation);
         //解锁
-        ops.getAndDelete(lock);
+        redisTemplate.delete(lock);
         return Response.ok(null);
     }
 

@@ -6,7 +6,7 @@ import com.bupt.hospital.util.Response;
 import com.bupt.hospital.vo.RegistryVo;
 
 public interface RegistryService {
-    Response<RegistryVo> registryPatient(Patient patient);
+    Response<Patient> registryPatient(Patient patient);
 
-    Response<RegistryVo> registryDoctor(Doctor doctor);
+    Response<Doctor> registryDoctor(Doctor doctor);
 }

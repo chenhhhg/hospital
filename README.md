@@ -8,4 +8,4 @@
    3. 修改application.yml里的MySQL连接信息，主要是账户与密码。
    4. 运行create_table.sql，该脚本会创建项目用的表，并注入一些数据。
    5. 启动项目。
-   6. 打开http://localhost:8000/swagger-ui/index.html，在explore栏中输入http://localhost:8000/v3/api-docs可看到所有接口信息。
+   6. 打开`http://localhost:8000/swagger-ui/index.html`，在explore栏中输入`http://localhost:8000/v3/api-docs`可看到所有接口信息。

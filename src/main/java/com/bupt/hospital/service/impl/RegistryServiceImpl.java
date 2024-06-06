@@ -20,28 +20,24 @@ public class RegistryServiceImpl implements RegistryService {
     private DoctorService doctorService;
 
     @Override
-    public Response<RegistryVo> registryPatient(Patient patient) {
+    public Response<Patient> registryPatient(Patient patient) {
         QueryWrapper<Patient> queryWrapper = new QueryWrapper<Patient>().eq("user_name", patient.getUserName());
         if(patientService.getOne(queryWrapper) != null){
             return Response.fail(null, ResultEnum.USER_NAME_EXIST.getCode(), "用户名已存在！");
         }
         patientService.save(patient);
-        RegistryVo registryVo = new RegistryVo();
-        registryVo.setUid(patient.getUserId());
-        registryVo.setUserName(patient.getUserName());
-        return Response.ok(registryVo);
+        patient.setPassword(null);
+        return Response.ok(patient);
     }
 
     @Override
-    public Response<RegistryVo> registryDoctor(Doctor doctor) {
+    public Response<Doctor> registryDoctor(Doctor doctor) {
         QueryWrapper<Doctor> queryWrapper = new QueryWrapper<Doctor>().eq("user_name", doctor.getUserName());
         if(doctorService.getOne(queryWrapper) != null){
             return Response.fail(null, ResultEnum.USER_NAME_EXIST.getCode(), "用户名已存在！");
         }
         doctorService.save(doctor);
-        RegistryVo registryVo = new RegistryVo();
-        registryVo.setUid(doctor.getUserId());
-        registryVo.setUserName(doctor.getUserName());
-        return Response.ok(registryVo);
+        doctor.setPassword(null);
+        return Response.ok(doctor);
     }
 }
