@@ -28,4 +28,7 @@
     <select id="selectRegistration" resultType="com.bupt.hospital.domain.Registration">
         select * from t_registration where doctor_id = #{id} and datediff(#{date}, date) = 0 and daytime = #{daytime}
     </select>
+    <select id="selectAllFutureRegistrations" resultType="com.bupt.hospital.domain.Registration">
+        SELECT * FROM t_registration WHERE authorized = 1 and DATEDIFF(CURRENT_DATE, date) &gt; -3 and DATEDIFF(CURRENT_DATE, date) &lt; 1
+    </select>
 </mapper>

@@ -23,6 +23,8 @@ public class LoginInterceptor implements HandlerInterceptor {
         HttpSession session = request.getSession();
         Object userId = session.getAttribute(SessionAttributeEnum.USER_ID.name());
         if(userId == null){
+            //不知道为什么字符集设置失效，所以拦截器里用的是英文
+            response.setContentType("application/json;charset=UTF-8");
             Response<Object> fail = Response.fail(null, ResultEnum.NOT_LOGIN.getCode(), "User didn't login!");
             PrintWriter writer = response.getWriter();
             ObjectMapper objectMapper = new ObjectMapper();
@@ -30,11 +32,5 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        //不知道为什么字符集设置失效，所以拦截器里用的是英文
-        response.setContentType("application/json;charset=UTF-8");
     }
 }

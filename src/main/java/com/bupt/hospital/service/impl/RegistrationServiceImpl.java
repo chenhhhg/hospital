@@ -1,6 +1,5 @@
 package com.bupt.hospital.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bupt.hospital.domain.Registration;
 import com.bupt.hospital.enums.ResultEnum;
@@ -10,7 +9,6 @@ import com.bupt.hospital.util.Response;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -38,6 +36,41 @@ public class RegistrationServiceImpl extends ServiceImpl<RegistrationMapper, Reg
         List<Registration> registrations = baseMapper.selectFutureRegistration(doctorId);
         return Response.ok(registrations);
     }
+
+    @Override
+    public Response<List<Registration>> getAllRegistration() {
+        List<Registration> registrations = baseMapper.selectList(null);
+        return Response.ok(registrations);
+    }
+
+    @Override
+    public Response<List<Registration>> checkRegistration(int id) {
+        Registration registration = baseMapper.selectById(id);
+        if (registration == null){
+            return Response.fail(null, ResultEnum.REGISTRATION_NOT_EXIXT.getCode(), "该号源不存在！");
+        }
+        registration.setAuthorized(1);
+        updateById(registration);
+        return Response.ok(null);
+    }
+
+    @Override
+    public Response<Integer> deleteRegistrations(List<Integer> unusedIds) {
+        int i = baseMapper.deleteBatchIds(unusedIds);
+        return Response.ok(i);
+    }
+
+    @Override
+    public Response<List<Registration>> getAfterRegistrations() {
+        List<Registration> registrations = baseMapper.selectAllFutureRegistrations();
+        return Response.ok(registrations);
+    }
+
+    @Override
+    public List<Registration> getPatientRegistrations(List<Integer> ids) {
+        return baseMapper.selectBatchIds(ids);
+    }
+
 }
 
 

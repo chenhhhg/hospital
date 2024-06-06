@@ -2,6 +2,9 @@ package com.bupt.hospital.mapper;
 
 import com.bupt.hospital.domain.RegistrationRelation;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
 * @author 86157
@@ -11,6 +14,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 */
 public interface RegistrationRelationMapper extends BaseMapper<RegistrationRelation> {
 
+    List<Integer> selectAllRegistrationIds(@Param("doctorIc") Integer doctorId);
 }
 
 

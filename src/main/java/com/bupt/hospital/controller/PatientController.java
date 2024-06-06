@@ -10,6 +10,7 @@ import com.bupt.hospital.util.Response;
 import com.bupt.hospital.enums.ResultEnum;
 import com.bupt.hospital.enums.RoleEnum;
 import com.bupt.hospital.enums.SessionAttributeEnum;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,10 +27,7 @@ public class PatientController {
     @Autowired
     PatientService patientService;
 
-    /**
-     * 获取自己的信息
-     * 只有本用户可访问
-     */
+    @Operation(summary = "获取病人自己的信息", description = "只有本用户可访问")
     @GetMapping("get")
     @Authorized(permits = {RoleEnum.PATIENT})
     public Response<Patient> getSelf(HttpServletRequest request){
@@ -49,10 +47,7 @@ public class PatientController {
         return Response.fail(null,"获取信息失败，请检查登录状态");
     }
 
-    /**
-     * 前端url传id
-     * 只有管理员或本用户可访问
-     */
+    @Operation(summary = "获取对应id病人的信息", description = "只有管理员或本用户可访问")
     @GetMapping("/get/{id}")
     @Authorized(permits = {RoleEnum.PATIENT, RoleEnum.ADMIN})
     public Response<Patient> getPatient(@PathVariable("id")Integer id, HttpServletRequest request){
@@ -63,28 +58,21 @@ public class PatientController {
         return Response.ok(byId);
     }
 
-    /**
-     * 管理员api
-     */
+    @Operation(summary = "获取所有病人的信息", description = "只有管理员可访问")
     @GetMapping("/getAll")
     @Authorized(permits = {RoleEnum.ADMIN})
     public Response<List<Patient>> getAll(HttpServletRequest request){
         return patientService.getAllPatient();
     }
 
-    /**
-     * 管理员api，返回未认证所有病人
-     */
+    @Operation(summary = "返回未认证所有病人", description = "只有管理员可访问")
     @GetMapping("/getUnauthorized")
     @Authorized(permits = {RoleEnum.ADMIN})
     public Response<List<Patient>> getUnauthorized(HttpServletRequest request){
         return patientService.getUnauthorized();
     }
 
-    /**
-     * 前端传id或用户名其中一个即可
-     * 只有管理员或本用户可访问
-     */
+    @Operation(summary = "修改病人信息", description = "只有管理员或本用户可访问。在请求体中识别对应id或用户名，id优先级更高，id为空则使用用户名识别。")
     @PostMapping("/update")
     @Authorized(permits = {RoleEnum.PATIENT, RoleEnum.ADMIN})
     @Logged(type = AdminOperationTypeEnum.UPDATE)
@@ -92,9 +80,4 @@ public class PatientController {
         return patientService.updatePatient(patient);
     }
 
-    /**
-     *
-     *
-     *
-     */
 }

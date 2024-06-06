@@ -12,6 +12,7 @@ import com.bupt.hospital.enums.ResultEnum;
 import com.bupt.hospital.enums.RoleEnum;
 import com.bupt.hospital.enums.SessionAttributeEnum;
 import com.bupt.hospital.vo.LoginVo;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,7 @@ public class LoginController {
     @Autowired
     private AdminService adminService;
 
+    @Operation(summary = "病人登录")
     @PostMapping("/patient")
     public Response<Patient> patientLogin(@RequestBody @Validated LoginVo loginVo,
                                           HttpServletRequest request){
@@ -45,9 +47,11 @@ public class LoginController {
         session.setAttribute(SessionAttributeEnum.USER_ID.name(), patient.getUserId());
         session.setAttribute(SessionAttributeEnum.USER_NAME.name(),patient.getUserName());
         session.setAttribute(SessionAttributeEnum.USER_ROLE.name(), RoleEnum.PATIENT.name());
-        return Response.ok(null);
+        patient.setPassword(null);
+        return Response.ok(patient);
     }
 
+    @Operation(summary = "医生登录")
     @PostMapping("/doctor")
     public Response<Doctor> doctorLogin(@RequestBody @Validated LoginVo loginVo,
                                         HttpServletRequest request){
@@ -64,9 +68,11 @@ public class LoginController {
         session.setAttribute(SessionAttributeEnum.USER_ID.name(), doctor.getUserId());
         session.setAttribute(SessionAttributeEnum.USER_NAME.name(),doctor.getUserName());
         session.setAttribute(SessionAttributeEnum.USER_ROLE.name(), RoleEnum.DOCTOR.name());
-        return Response.ok(null);
+        doctor.setPassword(null);
+        return Response.ok(doctor);
     }
 
+    @Operation(summary = "管理员登录")
     @PostMapping("/admin")
     public Response<Admin> adminLogin(@RequestBody @Validated LoginVo loginVo,
                                       HttpServletRequest request){
@@ -83,9 +89,11 @@ public class LoginController {
         session.setAttribute(SessionAttributeEnum.USER_ID.name(), admin.getUserId());
         session.setAttribute(SessionAttributeEnum.USER_NAME.name(),admin.getUserName());
         session.setAttribute(SessionAttributeEnum.USER_ROLE.name(), RoleEnum.ADMIN.name());
-        return Response.ok(null);
+        admin.setPassword(null);
+        return Response.ok(admin);
     }
 
+    @Operation(summary = "登出")
     @GetMapping("/logout")
     public Response<Object> logout(HttpServletRequest request){
         HttpSession session = request.getSession();

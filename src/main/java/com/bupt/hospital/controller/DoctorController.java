@@ -10,6 +10,7 @@ import com.bupt.hospital.util.Response;
 import com.bupt.hospital.enums.ResultEnum;
 import com.bupt.hospital.enums.RoleEnum;
 import com.bupt.hospital.enums.SessionAttributeEnum;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,11 +23,7 @@ import java.util.List;
 public class DoctorController {
     @Autowired
     private DoctorService doctorService;
-
-    /**
-     * 获取自己的信息
-     * 只有本用户可访问
-     */
+    @Operation(summary = "获取医生自己的信息", description = "只有本用户可访问")
     @Authorized(permits = {RoleEnum.DOCTOR})
     @GetMapping("get")
     public Response<Doctor> getSelf(HttpServletRequest request){
@@ -46,10 +43,7 @@ public class DoctorController {
         return Response.fail(null,"获取信息失败，请检查登录状态");
     }
 
-    /**
-     * 前端url传id
-     * 只有管理员或本用户可访问
-     */
+    @Operation(summary = "获取对应id医生的信息", description = "只有管理员或本用户可访问")
     @Authorized(permits = {RoleEnum.ADMIN, RoleEnum.DOCTOR})
     @GetMapping("/get/{id}")
     public Response<Doctor> getDoctor(@PathVariable Integer id, HttpServletRequest request){
@@ -60,27 +54,21 @@ public class DoctorController {
         return Response.ok(byId);
     }
 
-    /**
-     * 管理员api
-     */
+    @Operation(summary = "获取所有医生的信息", description = "只有管理员可访问")
     @Authorized(permits = {RoleEnum.ADMIN})
     @GetMapping("/getAll")
     public Response<List<Doctor>> getAll(HttpServletRequest request){
         return doctorService.getAllDoctor();
     }
 
-    /**
-     * 管理员api，返回未认证所有医生
-     */
+    @Operation(summary = "返回未认证所有医生", description = "只有管理员可访问")
     @Authorized(permits = {RoleEnum.ADMIN})
     @GetMapping("/getUnauthorized")
     public Response<List<Doctor>> getUnauthorized(HttpServletRequest request){
         return doctorService.getUnauthorized();
     }
-    /**
-     * 前端传id或用户名其中一个即可
-     * 只有管理员或本用户可访问
-     */
+
+    @Operation(summary = "修改医生信息", description = "只有管理员或本用户可访问。在请求体中识别对应id或用户名，id优先级更高，id为空则使用用户名识别。")
     @Authorized(permits = {RoleEnum.ADMIN, RoleEnum.DOCTOR})
     @Logged(type = AdminOperationTypeEnum.UPDATE)
     @PostMapping("/update")

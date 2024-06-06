@@ -12,6 +12,7 @@ import lombok.Data;
 
 /**
  * 
+ * @author cgx
  * @TableName t_registration_relation
  */
 @TableName(value ="t_registration_relation")
@@ -30,6 +31,8 @@ public class RegistrationRelation implements Serializable {
     private Date registrationDate;
 
     private Integer registrationDaytime;
+
+    private Integer payStatus;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

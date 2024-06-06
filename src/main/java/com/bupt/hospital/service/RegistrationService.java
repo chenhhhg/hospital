@@ -16,4 +16,14 @@ public interface RegistrationService extends IService<Registration> {
     Response<Registration> saveIfNotExist(Registration registration, Registration add);
 
     Response<List<Registration>> getAllAfter(Integer doctorId);
+
+    Response<List<Registration>> getAllRegistration();
+
+    Response<List<Registration>> checkRegistration(int id);
+
+    Response<Integer> deleteRegistrations(List<Integer> unusedIds);
+
+    Response<List<Registration>> getAfterRegistrations();
+
+    List<Registration> getPatientRegistrations(List<Integer> ids);
 }

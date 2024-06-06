@@ -3,6 +3,7 @@ package com.bupt.hospital.mapper;
 import com.bupt.hospital.domain.Registration;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Date;
 import java.util.List;
@@ -14,10 +15,11 @@ import java.util.List;
 * @Entity com.bupt.hospital.domain.Registration
 */
 public interface RegistrationMapper extends BaseMapper<Registration> {
-
     List<Registration> selectFutureRegistration(@Param("id") Integer doctorId);
 
     Registration selectRegistration(@Param("id") Integer doctorId,@Param("date") Date date,@Param("daytime") Integer daytime);
+
+    List<Registration> selectAllFutureRegistrations();
 }
 
 

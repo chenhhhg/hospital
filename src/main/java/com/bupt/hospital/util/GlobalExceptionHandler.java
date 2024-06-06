@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * @author cgx
@@ -40,6 +41,10 @@ public class GlobalExceptionHandler {
         return Response.fail(null, ResultEnum.INVALID_METHOD.getCode(), "前端同学用错方法了，请联系开发人员");
     }
 
-
+    @ResponseStatus(HttpStatus.OK)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public Response<Object> frontEndUrlArgInvalidHandler(MethodArgumentTypeMismatchException e){
+        return Response.fail(null, ResultEnum.INVALID_METHOD.getCode(), "前端同学看一下url是不是错了，或者路径传参类型不对。请联系开发人员");
+    }
 
 }

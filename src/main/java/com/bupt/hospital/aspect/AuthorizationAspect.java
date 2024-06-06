@@ -1,6 +1,7 @@
 package com.bupt.hospital.aspect;
 
 import com.bupt.hospital.annotation.Authorized;
+import com.bupt.hospital.controller.RegistrationController;
 import com.bupt.hospital.domain.Doctor;
 import com.bupt.hospital.domain.Patient;
 import com.bupt.hospital.domain.User;
@@ -74,9 +75,9 @@ public class AuthorizationAspect {
         String userName = (String) session.getAttribute(SessionAttributeEnum.USER_NAME.name());
         //使用参数进行校验，无参鉴权默认允许
         boolean intoMethodWithArg = false;
-        //get/{id}，只允许访问自己的
+        //get/{id}，只允许访问自己的。假定id一直是userId或是在挂号流程中一直是号源id
         if (id != null){
-            if(id.equals(userId)){
+            if(id.equals(userId) || joinPoint.getTarget() instanceof RegistrationController){
                 return (Response) joinPoint.proceed();
             }else {
                 intoMethodWithArg = true;

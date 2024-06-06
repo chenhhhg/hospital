@@ -5,13 +5,17 @@ import com.bupt.hospital.annotation.Authorized;
 import com.bupt.hospital.domain.Admin;
 import com.bupt.hospital.domain.Doctor;
 import com.bupt.hospital.domain.Patient;
+import com.bupt.hospital.domain.Registration;
 import com.bupt.hospital.service.AdminService;
 import com.bupt.hospital.service.DoctorService;
 import com.bupt.hospital.service.PatientService;
+import com.bupt.hospital.service.RegistrationService;
 import com.bupt.hospital.util.Response;
 import com.bupt.hospital.enums.ResultEnum;
 import com.bupt.hospital.enums.RoleEnum;
 import com.bupt.hospital.enums.SessionAttributeEnum;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +36,10 @@ public class AdminController {
     private PatientService patientService;
     @Autowired
     private DoctorService doctorService;
+    @Autowired
+    private RegistrationService registrationService;
 
+    @Operation(summary = "获得对应id的管理员", description = "所有管理员有权访问")
     @GetMapping("/get/{id}")
     @Authorized(permits = {RoleEnum.ADMIN})
     public Response<Admin> getAdmin(@PathVariable int id,HttpServletRequest request){
@@ -43,6 +50,7 @@ public class AdminController {
         return Response.ok(byId);
     }
 
+    @Operation(summary = "获得管理员本人信息", description = "所有管理员有权访问")
     @GetMapping("/get")
     @Authorized(permits = {RoleEnum.ADMIN})
     public Response<Admin> getSelf(HttpServletRequest request){
@@ -62,6 +70,7 @@ public class AdminController {
         return Response.fail(null,"获取信息失败，请检查登录状态");
     }
 
+    @Operation(summary = "对应id的病人账户审核通过", description = "所有管理员有权访问")
     @PostMapping("/check/patient/{id}")
     @Authorized(permits = {RoleEnum.ADMIN})
     public Response<Patient> checkPatient(@PathVariable("id")int id,HttpServletRequest request){
@@ -71,6 +80,7 @@ public class AdminController {
         return patientService.updatePatient(patient);
     }
 
+    @Operation(summary = "对应id的医生账户审核通过", description = "所有管理员有权访问")
     @PostMapping("/check/doctor/{id}")
     @Authorized(permits = {RoleEnum.ADMIN})
     public Response<Doctor> checkDoctor(@PathVariable("id")int id,HttpServletRequest request){
@@ -80,9 +90,10 @@ public class AdminController {
         return doctorService.updateDoctor(doctor);
     }
 
+    @Operation(summary = "所有对应id的医生账户审核通过", description = "所有管理员有权访问")
     @PostMapping("/check/doctor")
     @Authorized(permits = {RoleEnum.ADMIN})
-    public Response<Object> checkDoctors(@RequestBody List<Integer> ids,HttpServletRequest request){
+    public Response<Object> checkDoctors(@RequestBody @Parameter(description = "审核通过的医生id列表") List<Integer> ids, HttpServletRequest request){
         List<Doctor> doctors = ids.stream().map(i -> {
             Doctor doctor = new Doctor();
             doctor.setUserId(i);
@@ -93,9 +104,10 @@ public class AdminController {
         return b ? Response.ok(null) : Response.fail(null, "批量通过失败");
     }
 
+    @Operation(summary = "所有对应id的病人账户审核通过", description = "所有管理员有权访问")
     @PostMapping("/check/patient")
     @Authorized(permits = {RoleEnum.ADMIN})
-    public Response<Object> checkPatients(@RequestBody List<Integer> ids,HttpServletRequest request){
+    public Response<Object> checkPatients(@RequestBody @Parameter(description = "审核通过的病人id列表") List<Integer> ids,HttpServletRequest request){
         List<Patient> patients = ids.stream().map(i -> {
             Patient patient = new Patient();
             patient.setUserId(i);
@@ -103,6 +115,34 @@ public class AdminController {
             return patient;
         }).collect(Collectors.toList());
         boolean b = patientService.updateBatchById(patients);
+        return b ? Response.ok(null) : Response.fail(null, "批量通过失败");
+    }
+
+    @Operation(summary = "管理员获取所有医生所有号源", description = "管理员有权限访问")
+    @GetMapping("/getRegistration")
+    @Authorized(permits = {RoleEnum.ADMIN})
+    public Response<List<Registration>> getRegistration(HttpServletRequest request){
+        return registrationService.getAllRegistration();
+    }
+
+    @Operation(summary = "管理员允许某号源发布", description = "管理员有权访问")
+    @PostMapping("/check/registration/{id}")
+    @Authorized(permits = {RoleEnum.ADMIN})
+    public Response<List<Registration>> checkRegistration(HttpServletRequest request, @PathVariable int id){
+        return registrationService.checkRegistration(id);
+    }
+
+    @Operation(summary = "管理员允许一些号源发布", description = "管理员有权访问")
+    @PostMapping("/check/registration")
+    @Authorized(permits = {RoleEnum.ADMIN})
+    public Response<List<Registration>> checkRegistrations(HttpServletRequest request, @RequestBody List<Integer> ids){
+        List<Registration> collect = ids.stream().map(id -> {
+            Registration registration = new Registration();
+            registration.setId(id);
+            registration.setAuthorized(1);
+            return registration;
+        }).collect(Collectors.toList());
+        boolean b = registrationService.updateBatchById(collect);
         return b ? Response.ok(null) : Response.fail(null, "批量通过失败");
     }
 }

@@ -7,6 +7,7 @@ import com.bupt.hospital.util.Response;
 import com.bupt.hospital.enums.ResultEnum;
 import com.bupt.hospital.enums.RoleEnum;
 import com.bupt.hospital.vo.RegistryVo;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +24,7 @@ public class RegistryController {
     @Autowired
     private RegistryService registryService;
 
+    @Operation(summary = "使用userRole去选择性注册")
     @PostMapping("/registry")
     public Response<RegistryVo> registry(@RequestBody @Validated RegistryVo registryUser){
         if(registryUser.getUserRole().equalsIgnoreCase(RoleEnum.ADMIN.name())){
@@ -61,6 +63,7 @@ public class RegistryController {
         }
     }
 
+    @Operation(summary = "使用url去选择性注册病人")
     @PostMapping("/patient")
     public Response<RegistryVo> registryPatient(@RequestBody @Validated Patient patient){
         //id is set in db
@@ -68,6 +71,7 @@ public class RegistryController {
         return registryService.registryPatient(patient);
     }
 
+    @Operation(summary = "使用url去选择性注册医生")
     @PostMapping("/doctor")
     public Response<RegistryVo> registryDoctor(@RequestBody @Validated Doctor doctor){
         doctor.setUserId(null);

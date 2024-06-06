@@ -11,10 +11,15 @@
             <result property="registrationSource" column="registration_source" jdbcType="INTEGER"/>
             <result property="registrationDate" column="registration_date" jdbcType="DATE"/>
             <result property="registrationDaytime" column="registration_daytime" jdbcType="SMALLINT"/>
+            <result property="payStatus" column="registration_daytime" jdbcType="SMALLINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,patient_id,doctor_id,
-        registration_source,registration_date,registration_daytime
+        registration_source,registration_date,registration_daytime, payStatus
     </sql>
+    <select id="selectAllRegistrationIds" resultType="java.lang.Integer">
+        select distinct registration_source from t_registration_relation where doctor_id = #{doctorIc}
+        AND DATEDIFF(CURRENT_DATE, registration_date) &gt; -3 and DATEDIFF(CURRENT_DATE, registration_date) &lt; 1
+    </select>
 </mapper>
