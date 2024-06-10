@@ -13,6 +13,7 @@ import com.bupt.hospital.service.DoctorService;
 import com.bupt.hospital.service.RegistrationRelationService;
 import com.bupt.hospital.service.RegistrationService;
 import com.bupt.hospital.util.Response;
+import com.bupt.hospital.vo.RegistrationVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.apache.ibatis.annotations.Delete;
@@ -22,12 +23,10 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.web.bind.annotation.*;
 
+import javax.print.Doc;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -47,7 +46,7 @@ public class RegistrationController {
     @Operation(summary = "医生新增号源信息", description = "只有通过审核的医生本人有权访问")
     @PostMapping("/addRegistration")
     @Authorized(permits = RoleEnum.DOCTOR)
-    public Response<Registration> addRegistration(@RequestBody Registration registration,
+    public Response<RegistrationVo> addRegistration(@RequestBody Registration registration,
                                                   HttpServletRequest request){
         HttpSession session = request.getSession();
         Registration add = new Registration();
@@ -61,16 +60,25 @@ public class RegistrationController {
         add.setDoctorId(doctorId);
         add.setLockedQuantity(0);
         add.setAuthorized(0);
-        return registrationService.saveIfNotExist(registration, add);
+        Response<Registration> response = registrationService.saveIfNotExist(registration, add);
+        Registration data = response.getData();
+        HashMap<Integer, Doctor> map = new HashMap<>();
+        RegistrationVo vo = convertFromRegistration(data, map);
+        return new Response<>(vo, response.getCode(), response.getMessage());
     }
 
     @Operation(summary = "医生获取自己今日起三天的号源", description = "只有医生本人有权访问")
     @GetMapping("/getAll")
     @Authorized(permits = RoleEnum.DOCTOR)
-    public Response<List<Registration>> getAll(HttpServletRequest request){
+    public Response<List<RegistrationVo>> getAll(HttpServletRequest request){
         HttpSession session = request.getSession();
         Integer doctorId = (Integer) session.getAttribute(SessionAttributeEnum.USER_ID.name());
-        return registrationService.getAllAfter(doctorId);
+        Response<List<Registration>> response = registrationService.getAllAfter(doctorId);
+        List<Registration> registrations = response.getData();
+        HashMap<Integer, Doctor> map = new HashMap<>();
+        List<RegistrationVo> vos = registrations.stream()
+                .map(r -> convertFromRegistration(r, map)).collect(Collectors.toList());
+        return new Response<>(vos, response.getCode(), response.getMessage());
     }
 
     @Operation(summary = "医生删除自己未被挂号的号源", description = "只有医生有权访问")
@@ -102,27 +110,35 @@ public class RegistrationController {
     @Operation(summary = "病人获取通过审核的三天内的所有号源", description = "只有病人有权访问")
     @GetMapping("/getAfterRegistration")
     @Authorized(permits = RoleEnum.PATIENT)
-    public Response<List<Registration>> getAfterRegistrations(HttpServletRequest request){
-        return registrationService.getAfterRegistrations();
+    public Response<List<RegistrationVo>> getAfterRegistrations(HttpServletRequest request){
+        Response<List<Registration>> response = registrationService.getAfterRegistrations();
+        List<Registration> registrations = response.getData();
+        HashMap<Integer, Doctor> map = new HashMap<>();
+        List<RegistrationVo> vos = registrations.stream()
+                .map(r -> convertFromRegistration(r, map)).collect(Collectors.toList());
+        return new Response<>(vos, response.getCode(), response.getMessage());
     }
 
     @Operation(summary = "病人获取自己已挂号", description = "只有病人有权访问")
     @GetMapping("/getSelfRegistration")
     @Authorized(permits = RoleEnum.PATIENT)
-    public Response<List<Registration>> getSelfRegistration(HttpServletRequest request){
+    public Response<List<RegistrationVo>> getSelfRegistration(HttpServletRequest request){
         HttpSession session = request.getSession();
         Integer patientId = (Integer) session.getAttribute(SessionAttributeEnum.USER_ID.name());
         List<RegistrationRelation> registrationRelations = registrationRelationService.getSelfRegistration(patientId);
         List<Integer> ids = registrationRelations.stream()
                 .map(RegistrationRelation::getRegistrationSource).collect(Collectors.toList());
         List<Registration> registrations = registrationService.getPatientRegistrations(ids);
-        return Response.ok(registrations);
+        HashMap<Integer, Doctor> map = new HashMap<>();
+        List<RegistrationVo> vos = registrations.stream()
+                .map(r -> convertFromRegistration(r, map)).collect(Collectors.toList());
+        return Response.ok(vos);
     }
 
     @Operation(summary = "病人挂号", description = "只有病人有权访问")
     @GetMapping("/registration/{id}")
     @Authorized(permits = RoleEnum.PATIENT)
-    public Response<List<Registration>> registration(HttpServletRequest request, @PathVariable("id") Integer id){
+    public Response<List<RegistrationVo>> registration(HttpServletRequest request, @PathVariable("id") Integer id){
         HttpSession session = request.getSession();
         Integer patientId = (Integer) session.getAttribute(SessionAttributeEnum.USER_ID.name());
         //接下来是多线程写，开个分布式锁
@@ -166,7 +182,7 @@ public class RegistrationController {
     @Operation(summary = "病人支付", description = "只有病人有权访问")
     @GetMapping("/pay/{id}")
     @Authorized(permits = RoleEnum.PATIENT)
-    public Response<Registration> pay(HttpServletRequest request, @PathVariable("id") Integer id){
+    public Response<RegistrationVo> pay(HttpServletRequest request, @PathVariable("id") Integer id){
         HttpSession session = request.getSession();
         Integer patientId = (Integer) session.getAttribute(SessionAttributeEnum.USER_ID.name());
         List<RegistrationRelation> selfRegistration = registrationRelationService.getSelfRegistration(patientId);
@@ -179,5 +195,30 @@ public class RegistrationController {
         }else {
             return Response.fail(null, ResultEnum.REPEATE_PAY.getCode(), "请勿重复支付！");
         }
+    }
+
+    private RegistrationVo convertFromRegistration(Registration r, Map<Integer, Doctor> map){
+        RegistrationVo vo = new RegistrationVo();
+        Integer doctorId = r.getDoctorId();
+        //然而不可能npe
+        vo.setUid(doctorId);
+        vo.setDate(r.getDate());
+        vo.setTime(r.getDaytime());
+        vo.setCount(r.getQuantity());
+        vo.setId(r.getId());
+        vo.setChecked(r.getAuthorized());
+        vo.setAvailableCount(r.getQuantity() - r.getLockedQuantity());
+        Doctor doctor = null;
+        if (!map.containsKey(doctorId)) {
+            doctor = doctorService.getById(doctorId);
+            map.put(doctorId, doctor);
+        } else {
+            doctor = map.get(doctorId);
+        }
+        vo.setDoctorName(doctor.getName());
+        vo.setPhone(doctor.getContact());
+        vo.setHospital(doctor.getHospital());
+        vo.setOffice(doctor.getDepartment());
+        return vo;
     }
 }
