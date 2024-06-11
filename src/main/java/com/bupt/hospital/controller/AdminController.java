@@ -14,6 +14,7 @@ import com.bupt.hospital.util.Response;
 import com.bupt.hospital.enums.ResultEnum;
 import com.bupt.hospital.enums.RoleEnum;
 import com.bupt.hospital.enums.SessionAttributeEnum;
+import com.bupt.hospital.vo.RegistrationVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -121,21 +124,31 @@ public class AdminController {
     @Operation(summary = "管理员获取所有医生所有号源", description = "管理员有权限访问")
     @GetMapping("/getRegistration")
     @Authorized(permits = {RoleEnum.ADMIN})
-    public Response<List<Registration>> getRegistration(HttpServletRequest request){
-        return registrationService.getAllRegistration();
+    public Response<List<RegistrationVo>> getRegistration(HttpServletRequest request){
+        Response<List<Registration>> response = registrationService.getAllRegistration();
+        List<Registration> registrations = response.getData();
+        HashMap<Integer, Doctor> map = new HashMap<>();
+        List<RegistrationVo> vos = registrations.stream()
+                .map(r -> convertFromRegistration(r, map)).collect(Collectors.toList());
+        return new Response<>(vos, response.getCode(), response.getMessage());
     }
 
     @Operation(summary = "管理员允许某号源发布", description = "管理员有权访问")
     @PostMapping("/check/registration/{id}")
     @Authorized(permits = {RoleEnum.ADMIN})
-    public Response<List<Registration>> checkRegistration(HttpServletRequest request, @PathVariable int id){
-        return registrationService.checkRegistration(id);
+    public Response<List<RegistrationVo>> checkRegistration(HttpServletRequest request, @PathVariable int id){
+        Response<List<Registration>> response = registrationService.checkRegistration(id);
+        List<Registration> registrations = response.getData();
+        HashMap<Integer, Doctor> map = new HashMap<>();
+        List<RegistrationVo> vos = registrations.stream()
+                .map(r -> convertFromRegistration(r, map)).collect(Collectors.toList());
+        return new Response<>(vos, response.getCode(), response.getMessage());
     }
 
     @Operation(summary = "管理员允许一些号源发布", description = "管理员有权访问")
     @PostMapping("/check/registration")
     @Authorized(permits = {RoleEnum.ADMIN})
-    public Response<List<Registration>> checkRegistrations(HttpServletRequest request, @RequestBody List<Integer> ids){
+    public Response<List<RegistrationVo>> checkRegistrations(HttpServletRequest request, @RequestBody List<Integer> ids){
         List<Registration> collect = ids.stream().map(id -> {
             Registration registration = new Registration();
             registration.setId(id);
@@ -144,5 +157,30 @@ public class AdminController {
         }).collect(Collectors.toList());
         boolean b = registrationService.updateBatchById(collect);
         return b ? Response.ok(null) : Response.fail(null, "批量通过失败");
+    }
+
+    private RegistrationVo convertFromRegistration(Registration r, Map<Integer, Doctor> map){
+        RegistrationVo vo = new RegistrationVo();
+        Integer doctorId = r.getDoctorId();
+        //然而不可能npe
+        vo.setUid(doctorId);
+        vo.setDate(r.getDate());
+        vo.setTime(r.getDaytime());
+        vo.setCount(r.getQuantity());
+        vo.setId(r.getId());
+        vo.setChecked(r.getAuthorized());
+        vo.setAvailableCount(r.getQuantity() - r.getLockedQuantity());
+        Doctor doctor = null;
+        if (!map.containsKey(doctorId)) {
+            doctor = doctorService.getById(doctorId);
+            map.put(doctorId, doctor);
+        } else {
+            doctor = map.get(doctorId);
+        }
+        vo.setDoctorName(doctor.getName());
+        vo.setPhone(doctor.getContact());
+        vo.setHospital(doctor.getHospital());
+        vo.setOffice(doctor.getDepartment());
+        return vo;
     }
 }
