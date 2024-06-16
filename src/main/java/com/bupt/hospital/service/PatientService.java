@@ -1,5 +1,6 @@
 package com.bupt.hospital.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bupt.hospital.domain.Patient;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.bupt.hospital.util.Response;
@@ -20,4 +21,5 @@ public interface PatientService extends IService<Patient> {
     Response<List<Patient>> getUnauthorized();
 
 
+    List<Patient> getBatch(QueryWrapper<Patient> condition);
 }

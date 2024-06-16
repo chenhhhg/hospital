@@ -55,6 +55,11 @@ public class PatientServiceImpl extends ServiceImpl<PatientMapper, Patient>
                 .eq("authorized", AuthorizeEnum.UNAUTHORIZED.getCode()));
         return Response.ok(patients);
     }
+
+    @Override
+    public List<Patient> getBatch(QueryWrapper<Patient> condition) {
+        return baseMapper.selectList(condition);
+    }
 }
 
 

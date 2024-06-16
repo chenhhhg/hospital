@@ -14,7 +14,9 @@ import com.bupt.hospital.util.Response;
 import com.bupt.hospital.enums.ResultEnum;
 import com.bupt.hospital.enums.RoleEnum;
 import com.bupt.hospital.enums.SessionAttributeEnum;
+import com.bupt.hospital.util.VoConvertor;
 import com.bupt.hospital.vo.RegistrationVo;
+import com.bupt.hospital.vo.UserVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,33 +44,64 @@ public class AdminController {
     @Autowired
     private RegistrationService registrationService;
 
+    @Operation(summary = "根据用户名查找", description = "管理员权限")
+    @GetMapping("/search/username")
+    @Authorized(permits = {RoleEnum.ADMIN})
+    public Response<List<UserVo>> searchByUsername(@RequestParam("p") String username, HttpServletRequest request){
+        List<Doctor> doctors = doctorService.getBatch(new QueryWrapper<Doctor>().likeRight("user_name", username));
+        List<Patient> patients = patientService.getBatch(new QueryWrapper<Patient>().likeRight("user_name", username));
+        List<UserVo> userVos = doctors.stream().map(VoConvertor::convertFromDoctor).collect(Collectors.toList());
+        patients.forEach(p->userVos.add(VoConvertor.convertFromPatient(p)));
+        return Response.ok(userVos);
+    }
+    @Operation(summary = "根据姓名查找", description = "管理员权限")
+    @GetMapping("/search/name")
+    @Authorized(permits = {RoleEnum.ADMIN})
+    public Response<List<UserVo>> searchByName(@RequestParam("p") String name, HttpServletRequest request){
+        List<Doctor> doctors = doctorService.getBatch(new QueryWrapper<Doctor>().likeRight("name", name));
+        List<Patient> patients = patientService.getBatch(new QueryWrapper<Patient>().likeRight("name", name));
+        List<UserVo> userVos = doctors.stream().map(VoConvertor::convertFromDoctor).collect(Collectors.toList());
+        patients.forEach(p->userVos.add(VoConvertor.convertFromPatient(p)));
+        return Response.ok(userVos);
+    }
+    @Operation(summary = "根据身份证查找", description = "管理员权限")
+    @GetMapping("/search/idNumber")
+    @Authorized(permits = {RoleEnum.ADMIN})
+    public Response<List<UserVo>> searchByIdNumber(@RequestParam("p") String idNumber, HttpServletRequest request){
+        List<Doctor> doctors = doctorService.getBatch(new QueryWrapper<Doctor>().likeRight("id_number", idNumber));
+        List<Patient> patients = patientService.getBatch(new QueryWrapper<Patient>().likeRight("id_number", idNumber));
+        List<UserVo> userVos = doctors.stream().map(VoConvertor::convertFromDoctor).collect(Collectors.toList());
+        patients.forEach(p->userVos.add(VoConvertor.convertFromPatient(p)));
+        return Response.ok(userVos);
+    }
+
     @Operation(summary = "获得对应id的管理员", description = "所有管理员有权访问")
     @GetMapping("/get/{id}")
     @Authorized(permits = {RoleEnum.ADMIN})
-    public Response<Admin> getAdmin(@PathVariable int id,HttpServletRequest request){
+    public Response<UserVo> getAdmin(@PathVariable int id,HttpServletRequest request){
         Admin byId = adminService.getById(id);
         if (byId == null){
             return Response.fail(null, ResultEnum.USER_NOT_EXIXT.getCode(), "用户不存在！");
         }
-        return Response.ok(byId);
+        return Response.ok(VoConvertor.convertFromAdmin(byId));
     }
 
     @Operation(summary = "获得管理员本人信息", description = "所有管理员有权访问")
     @GetMapping("/get")
     @Authorized(permits = {RoleEnum.ADMIN})
-    public Response<Admin> getSelf(HttpServletRequest request){
+    public Response<UserVo> getSelf(HttpServletRequest request){
         HttpSession session = request.getSession();
         Integer id = (Integer) session.getAttribute(SessionAttributeEnum.USER_ID.name());
         Admin byId = adminService.getById(id);
         if (byId != null){
             byId.setPassword(null);
-            return Response.ok(byId);
+            return Response.ok(VoConvertor.convertFromAdmin(byId));
         }
         String userName = (String) session.getAttribute(SessionAttributeEnum.USER_NAME.name());
         Admin byName = adminService.getOne(new QueryWrapper<Admin>().eq("user_name", userName));
         if (byName != null){
             byName.setPassword(null);
-            return Response.ok(byName);
+            return Response.ok(VoConvertor.convertFromAdmin(byName));
         }
         return Response.fail(null,"获取信息失败，请检查登录状态");
     }
@@ -76,21 +109,25 @@ public class AdminController {
     @Operation(summary = "对应id的病人账户审核通过", description = "所有管理员有权访问")
     @PostMapping("/check/patient/{id}")
     @Authorized(permits = {RoleEnum.ADMIN})
-    public Response<Patient> checkPatient(@PathVariable("id")int id,HttpServletRequest request){
+    public Response<UserVo> checkPatient(@PathVariable("id")int id,HttpServletRequest request){
         Patient patient = new Patient();
         patient.setUserId(id);
         patient.setAuthorized(1);
-        return patientService.updatePatient(patient);
+        Response<Patient> response = patientService.updatePatient(patient);
+        return new Response<>(VoConvertor.convertFromPatient(response.getData()),
+                response.getCode(), response.getMessage());
     }
 
     @Operation(summary = "对应id的医生账户审核通过", description = "所有管理员有权访问")
     @PostMapping("/check/doctor/{id}")
     @Authorized(permits = {RoleEnum.ADMIN})
-    public Response<Doctor> checkDoctor(@PathVariable("id")int id,HttpServletRequest request){
+    public Response<UserVo> checkDoctor(@PathVariable("id")int id,HttpServletRequest request){
         Doctor doctor = new Doctor();
         doctor.setUserId(id);
         doctor.setAuthorized(1);
-        return doctorService.updateDoctor(doctor);
+        Response<Doctor> response = doctorService.updateDoctor(doctor);
+        return new Response<>(VoConvertor.convertFromDoctor(response.getData()),
+                response.getCode(), response.getMessage());
     }
 
     @Operation(summary = "所有对应id的医生账户审核通过", description = "所有管理员有权访问")
@@ -183,4 +220,6 @@ public class AdminController {
         vo.setOffice(doctor.getDepartment());
         return vo;
     }
+
+
 }

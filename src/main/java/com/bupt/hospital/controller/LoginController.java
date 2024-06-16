@@ -11,7 +11,9 @@ import com.bupt.hospital.util.Response;
 import com.bupt.hospital.enums.ResultEnum;
 import com.bupt.hospital.enums.RoleEnum;
 import com.bupt.hospital.enums.SessionAttributeEnum;
+import com.bupt.hospital.util.VoConvertor;
 import com.bupt.hospital.vo.LoginVo;
+import com.bupt.hospital.vo.UserVo;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -32,8 +34,8 @@ public class LoginController {
 
     @Operation(summary = "病人登录")
     @PostMapping("/patient")
-    public Response<Patient> patientLogin(@RequestBody @Validated LoginVo loginVo,
-                                          HttpServletRequest request){
+    public Response<UserVo> patientLogin(@RequestBody @Validated LoginVo loginVo,
+                                         HttpServletRequest request){
         Patient patient = patientService.getOne(new QueryWrapper<Patient>().eq(
                 "user_name", loginVo.getUserName()
         ));
@@ -48,12 +50,12 @@ public class LoginController {
         session.setAttribute(SessionAttributeEnum.USER_NAME.name(),patient.getUserName());
         session.setAttribute(SessionAttributeEnum.USER_ROLE.name(), RoleEnum.PATIENT.name());
         patient.setPassword(null);
-        return Response.ok(patient);
+        return Response.ok(VoConvertor.convertFromPatient(patient));
     }
 
     @Operation(summary = "医生登录")
     @PostMapping("/doctor")
-    public Response<Doctor> doctorLogin(@RequestBody @Validated LoginVo loginVo,
+    public Response<UserVo> doctorLogin(@RequestBody @Validated LoginVo loginVo,
                                         HttpServletRequest request){
         Doctor doctor = doctorService.getOne(new QueryWrapper<Doctor>().eq(
                 "user_name", loginVo.getUserName()
@@ -69,12 +71,12 @@ public class LoginController {
         session.setAttribute(SessionAttributeEnum.USER_NAME.name(),doctor.getUserName());
         session.setAttribute(SessionAttributeEnum.USER_ROLE.name(), RoleEnum.DOCTOR.name());
         doctor.setPassword(null);
-        return Response.ok(doctor);
+        return Response.ok(VoConvertor.convertFromDoctor(doctor));
     }
 
     @Operation(summary = "管理员登录")
     @PostMapping("/admin")
-    public Response<Admin> adminLogin(@RequestBody @Validated LoginVo loginVo,
+    public Response<UserVo> adminLogin(@RequestBody @Validated LoginVo loginVo,
                                       HttpServletRequest request){
         Admin admin = adminService.getOne(new QueryWrapper<Admin>().eq(
                 "user_name", loginVo.getUserName()
@@ -90,7 +92,7 @@ public class LoginController {
         session.setAttribute(SessionAttributeEnum.USER_NAME.name(),admin.getUserName());
         session.setAttribute(SessionAttributeEnum.USER_ROLE.name(), RoleEnum.ADMIN.name());
         admin.setPassword(null);
-        return Response.ok(admin);
+        return Response.ok(VoConvertor.convertFromAdmin(admin));
     }
 
     @Operation(summary = "登出")
