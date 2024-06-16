@@ -16,11 +16,11 @@ public class RegistrationVo {
     private String phone;
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date date;
-    @Schema(name = "0-早上，1-下午")
+    @Schema(description = "0-早上，1-下午")
     private int time;
     private int count;
     private int id;
-    @Schema(name = "0-未审核，1-审核通过")
+    @Schema(description = "0-未审核，1-审核通过")
     private int checked;
     private int availableCount;
     private String hospital;
