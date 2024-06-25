@@ -145,37 +145,41 @@ public class RegistrationController {
         //todo 好像不用分布式锁，MySQL事务内更改locked_quantity字段就行
         ValueOperations<String, String> ops = redisTemplate.opsForValue();
         String lock = REGISTRATION_LOCK_PREFIX + id;
-        if (!Boolean.TRUE.equals(ops.setIfAbsent(lock, "locked"))){
-            return Response.fail(null, ResultEnum.REGISTRATION_BUSY.getCode(), "其他人正在挂号中，请稍后重试！");
+        try {
+            if (!Boolean.TRUE.equals(ops.setIfAbsent(lock, "locked"))){
+                return Response.fail(null, ResultEnum.REGISTRATION_BUSY.getCode(), "其他人正在挂号中，请稍后重试！");
+            }
+            //该号源是否仍有余号
+            Registration byId = registrationService.getById(id);
+            if (byId == null){
+                return Response.fail(null, ResultEnum.REGISTRATION_NOT_EXIXT.getCode(), "号源不存在，请检查id");
+            }
+            if (byId.getLockedQuantity() != null && byId.getLockedQuantity() >= byId.getQuantity()){
+                return Response.fail(null, ResultEnum.REGISTRATION_NOT_AVAILiBLE.getCode(), "该号源已满！请重新选择日期！");
+            }
+            //病人是否已挂该号
+            List<RegistrationRelation> registrationRelations = registrationRelationService.getRelationBySource(id);
+            Set<Integer> patients = registrationRelations.stream().map(RegistrationRelation::getPatientId).collect(Collectors.toSet());
+            if (patients.contains(patientId)){
+                return Response.fail(null, ResultEnum.REPEAT_REGISTRATION.getCode(), "您已挂该号！请勿重复挂号");
+            }
+            Registration registration = new Registration();
+            registration.setId(id);
+            registration.setLockedQuantity(byId.getLockedQuantity() + 1);
+            registrationService.updateById(registration);
+            RegistrationRelation registrationRelation = new RegistrationRelation();
+            registrationRelation.setRegistrationDate(byId.getDate());
+            registrationRelation.setRegistrationDaytime(byId.getDaytime());
+            registrationRelation.setRegistrationSource(id);
+            registrationRelation.setDoctorId(byId.getDoctorId());
+            registrationRelation.setPatientId(patientId);
+            registrationRelation.setPayStatus(0);
+            registrationRelationService.save(registrationRelation);
+        }finally {
+            //解锁
+            redisTemplate.delete(lock);
         }
-        //该号源是否仍有余号
-        Registration byId = registrationService.getById(id);
-        if (byId == null){
-            return Response.fail(null, ResultEnum.REGISTRATION_NOT_EXIXT.getCode(), "号源不存在，请检查id");
-        }
-        if (byId.getLockedQuantity() != null && byId.getLockedQuantity() >= byId.getQuantity()){
-            return Response.fail(null, ResultEnum.REGISTRATION_NOT_AVAILiBLE.getCode(), "该号源已满！请重新选择日期！");
-        }
-        //病人是否已挂该号
-        List<RegistrationRelation> registrationRelations = registrationRelationService.getRelationBySource(id);
-        Set<Integer> patients = registrationRelations.stream().map(RegistrationRelation::getPatientId).collect(Collectors.toSet());
-        if (patients.contains(patientId)){
-            return Response.fail(null, ResultEnum.REPEAT_REGISTRATION.getCode(), "您已挂该号！请勿重复挂号");
-        }
-        Registration registration = new Registration();
-        registration.setId(id);
-        registration.setLockedQuantity(byId.getLockedQuantity() + 1);
-        registrationService.updateById(registration);
-        RegistrationRelation registrationRelation = new RegistrationRelation();
-        registrationRelation.setRegistrationDate(byId.getDate());
-        registrationRelation.setRegistrationDaytime(byId.getDaytime());
-        registrationRelation.setRegistrationSource(id);
-        registrationRelation.setDoctorId(byId.getDoctorId());
-        registrationRelation.setPatientId(patientId);
-        registrationRelation.setPayStatus(0);
-        registrationRelationService.save(registrationRelation);
-        //解锁
-        redisTemplate.delete(lock);
+
         return Response.ok(null);
     }
 
@@ -219,6 +223,7 @@ public class RegistrationController {
         vo.setPhone(doctor.getContact());
         vo.setHospital(doctor.getHospital());
         vo.setOffice(doctor.getDepartment());
+        vo.setTitle(doctor.getTitle());
         return vo;
     }
 }

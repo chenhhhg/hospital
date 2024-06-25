@@ -12,6 +12,7 @@ import com.bupt.hospital.enums.SessionAttributeEnum;
 import com.bupt.hospital.exception.InvalidTargetException;
 import com.bupt.hospital.service.LogService;
 import com.bupt.hospital.util.Response;
+import com.bupt.hospital.vo.UserVo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -50,12 +51,12 @@ public class LogAspect {
             return result;
         }
         Integer adminId = (Integer) session.getAttribute(SessionAttributeEnum.USER_ID.name());
-        User user = (User) result.getData();
+        UserVo user = (UserVo) result.getData();
         ObjectMapper objectMapper = new ObjectMapper();
         String originalValue = objectMapper.writeValueAsString(user);
         Log log = new Log();
         log.setAdminId(adminId);
-        log.setUserId(user.getUserId());
+        log.setUserId(user.getUid());
         log.setUserRole(user.getUserRole());
         log.setOperationType(annotation.type().name());
         log.setOriginalValue(originalValue);

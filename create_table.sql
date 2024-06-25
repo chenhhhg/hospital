@@ -69,11 +69,11 @@ CREATE TABLE `t_registration`  (
                                    `quantity` int NOT NULL,
                                    `locked_quantity` int NULL DEFAULT 0,
                                    `date` date NOT NULL,
-                                   `daytime` smallint NOT NULL COMMENT '0-morning,1-afterning',
+                                   `daytime` smallint NOT NULL COMMENT '0-morning,1-afternoon',
                                    `authorized` smallint NULL DEFAULT 0 COMMENT '0-no,1-yes',
                                    PRIMARY KEY (`id`) USING BTREE,
                                    INDEX `doctor_id_idx`(`doctor_id` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 DROP TABLE IF EXISTS `t_registration_relation`;
 CREATE TABLE `t_registration_relation`  (
@@ -83,8 +83,9 @@ CREATE TABLE `t_registration_relation`  (
                                             `registration_source` int NOT NULL,
                                             `registration_date` date NOT NULL,
                                             `registration_daytime` smallint NOT NULL,
+                                            `pay_status` smallint NOT NULL COMMENT '0-not pay,1-payed',
                                             PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 
 

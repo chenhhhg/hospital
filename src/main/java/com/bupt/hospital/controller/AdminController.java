@@ -2,10 +2,12 @@ package com.bupt.hospital.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bupt.hospital.annotation.Authorized;
+import com.bupt.hospital.annotation.Logged;
 import com.bupt.hospital.domain.Admin;
 import com.bupt.hospital.domain.Doctor;
 import com.bupt.hospital.domain.Patient;
 import com.bupt.hospital.domain.Registration;
+import com.bupt.hospital.enums.AdminOperationTypeEnum;
 import com.bupt.hospital.service.AdminService;
 import com.bupt.hospital.service.DoctorService;
 import com.bupt.hospital.service.PatientService;
@@ -21,6 +23,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import sun.security.x509.AttributeNameEnumeration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -43,6 +46,17 @@ public class AdminController {
     private DoctorService doctorService;
     @Autowired
     private RegistrationService registrationService;
+
+    @Operation(summary = "管理员修改自己信息", description = "只有管理员可访问")
+    @Authorized(permits = {RoleEnum.ADMIN})
+    @Logged(type = AdminOperationTypeEnum.UPDATE)
+    @PostMapping("/update")
+    public Response<UserVo> update(@RequestBody Admin admin, HttpServletRequest request){
+        admin.setUserId((Integer) request.getSession().getAttribute(SessionAttributeEnum.USER_ID.name()));
+        Response<Admin> response = adminService.updateAdmin(admin);
+        return new Response<>(VoConvertor.convertFromAdmin(response.getData()),
+                response.getCode(), response.getMessage());
+    }
 
     @Operation(summary = "根据用户名查找", description = "管理员权限")
     @GetMapping("/search/username")

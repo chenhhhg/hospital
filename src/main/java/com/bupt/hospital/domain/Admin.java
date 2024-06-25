@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 
+import com.bupt.hospital.util.Response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -41,4 +42,5 @@ public class Admin implements Serializable, User {
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
 }
