@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.Date;
 
 @Component
 @Aspect
@@ -61,6 +62,7 @@ public class LogAspect {
         log.setOperationType(annotation.type().name());
         log.setOriginalValue(originalValue);
         log.setStatus(result.getCode().equals(ResultEnum.SUCCESS.getCode()) ? 1 : 0);
+        log.setModifyTime(new Date());
         logService.save(log);
         return result;
     }

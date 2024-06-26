@@ -52,7 +52,7 @@ CREATE TABLE `t_log`  (
                           `id` int NOT NULL AUTO_INCREMENT,
                           `admin_id` int NOT NULL,
                           `user_id` int NOT NULL,
-                          `user_role` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+                          `user_role` varchar(7) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
                           `operation_type` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
                           `original_value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
                           `modify_time` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,

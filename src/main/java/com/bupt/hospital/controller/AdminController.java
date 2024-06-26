@@ -189,11 +189,7 @@ public class AdminController {
     @Authorized(permits = {RoleEnum.ADMIN})
     public Response<List<RegistrationVo>> checkRegistration(HttpServletRequest request, @PathVariable int id){
         Response<List<Registration>> response = registrationService.checkRegistration(id);
-        List<Registration> registrations = response.getData();
-        HashMap<Integer, Doctor> map = new HashMap<>();
-        List<RegistrationVo> vos = registrations.stream()
-                .map(r -> convertFromRegistration(r, map)).collect(Collectors.toList());
-        return new Response<>(vos, response.getCode(), response.getMessage());
+        return new Response<>(null, response.getCode(), response.getMessage());
     }
 
     @Operation(summary = "管理员允许一些号源发布", description = "管理员有权访问")

@@ -61,10 +61,7 @@ public class RegistrationController {
         add.setLockedQuantity(0);
         add.setAuthorized(0);
         Response<Registration> response = registrationService.saveIfNotExist(registration, add);
-        Registration data = response.getData();
-        HashMap<Integer, Doctor> map = new HashMap<>();
-        RegistrationVo vo = convertFromRegistration(data, map);
-        return new Response<>(vo, response.getCode(), response.getMessage());
+        return new Response<>(null, response.getCode(), response.getMessage());
     }
 
     @Operation(summary = "医生获取自己今日起三天的号源", description = "只有医生本人有权访问")
